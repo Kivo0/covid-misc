@@ -1,7 +1,7 @@
 ################################################################################################################################
 ################################################################################################################################
 ### Thomas Merkh, tmerkh@g.ucla.edu
-### 3.24.2020
+### 4.01.2020
 ################################################################################################################################
 ### 
 ### This code parses through tweet json files, searches through the full text content of each tweet, and constructs a matrix with
@@ -47,8 +47,9 @@ def determine_date(tweet_time):
 #######################################################################################################
 
 # Define the words which we would like to count throughout the data
-word_library = ['pandemic','covid19','covid-19','coronavirus','china','wuhan','wuhanvirus','trump','stimulus','economy','health','hospital','hospitals','distancing','social','america','americas','europe','italy','spain','france','germany','chinavirus','racist','shelter','medical','epidemic','pence','markets','fauci','right-wing','left-wing','democrats','republicans','asian','asia','panic','fake','closure','schools','universities','university','symptoms','cough','lungs','dead','dying','die','recovered','restrictions','recession','ventilators','respiratory','masks','mask','gloves','ppe', 'protective','stayathome','trumpmadness','safehands','viewfrommywindow','mypandemicsurvivalplan','quarantineandchill','flu','usa','corona','panic-building','students','cdc','canceled','cancelled','crisis','tests','test','god','sanitizer','research','toilet']
+word_library = ['pandemic','covid19','coronavirus','china','wuhan','wuhanvirus','trump','stimulus','economy','health','hospital','hospitals','distancing','social','america','americas','europe','italy','spain','france','germany','chinavirus','racist','shelter','medical','epidemic','pence','stock','market','markets','fauci','conservatives','liberals','democrats','republicans','asian','asia','panic','fake','closure','schools','universities','university','symptoms','cough','lungs','dead','dying','die','recovered','restrictions','recession','ventilators','respiratory','masks','mask','gloves','ppe', 'protective','stayathome','trumpmadness','safehands','viewfrommywindow','mypandemicsurvivalplan','quarantineandchill','flu','usa','corona','students','cdc','canceled','cancelled','crisis','tests','test','god','sanitizer','research','toilet','epicenter','groceries','grocery','war','invisible']
 
+filename = "Library_Matrix1" # Output file name
 #######################################################################################################
 #################### Don't Mess with below unless you know what you're doing ##########################
 #######################################################################################################
@@ -88,6 +89,8 @@ for q in range(len(files)):
                 dates_instances[str(date)] += 1
             dates.add(date)
             counter += 1
+print("There are", counter, "tweets in this repository")
+#print("There should be", 6767425) # as of 3.30.2020
 
 dates = list(dates)
 dates.sort()
@@ -106,7 +109,7 @@ date_range = dates[-1] - dates[0] + 1
 # Create a numpy array which has size len(word_library) by XXXlen(dates)XXX date_range since some dates are missing, its values will be occurences of each word on a given date
 Lib_Mat = np.zeros((len(word_library),date_range))
 
-print("Counting word instances from tweet data. This typically takes about 1-5 minutes per million tweets.")
+print("Counting word instances from tweet data.\nThis typically takes about 1-5 minutes per million tweets.\nIf using the compressed tweets, this takes about 45 seconds per million.")
 counter = 0
 first_day = dates[0]
 for q in range(len(files)):
@@ -142,7 +145,6 @@ if not(os.path.isdir(cwd + "/Word_Library_Matrix")):
 
 
 # Output
-filename = "Library_Matrix2"
 
 new_file = open(cwd + "/Word_Library_Matrix/" + filename + "_rowinfo.txt","w+")
 new_file.write("The words and total number of instances of each:\n")

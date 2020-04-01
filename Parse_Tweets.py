@@ -28,15 +28,31 @@ import json
 cwd = os.getcwd()
 wd = cwd + "/Hydrated_Tweets"
 files = [x[2] for x in os.walk(wd)][0]
-working_file = wd + "/" + files[7]      # Switch this last number to parse different files
+sorted_files = []
+filen = 11 # this needs to start with your lowest file number
+for i in range(len(files)):
+    current = 0
+    for j in range(len(files)):
+        entry = files[j].strip(".json")
+        entry = entry.strip("tweets")
+        if(str(filen) == entry):
+            sorted_files.append(files[j])
+            break
+    filen += 1
+files = sorted_files
+# Silently tracking the number of tweets in this compressed file...
+# 773417 + 750959 + 798806 + 785038 + 774058 + 720880 + 511714 + 582540 + 534610 + 535403 + 556731 = 7324156 ||| 528896 + 609029 + 543850 = up to and including tweets14
+working_file = wd + "/" + files[2]      # Switch this last number to parse different files
 verbose = 0                             # 0 == no output, 1 == some output, 2 == full output (way too much for large files)
 
-print(files)
 print("Make sure you are appending the correct tweets onto the file so you do not double count any!")
 print("When you have, remove the sys.exit() line and run the code")
 print('Working file:', working_file)
 
-sys.exit()
+if(verbose > 0):
+    print(files)
+
+#sys.exit() # Don't change, just run
 
 
 # Make sure that the directory already exists
@@ -45,7 +61,7 @@ if not(os.path.isdir(cwd + "/HydratedIDs_compressed")):
     os.mkdir(cwd + "/HydratedIDs_compressed")
 
 # Appending to the file! Important!
-new_file = open(cwd + "/HydratedIDs_compressed/partial_tweets.json","a+")
+new_file = open(cwd + "/HydratedIDs_compressed/partial_tweets2.json","a+")
 
 counter = 0
 with open(working_file) as f:
