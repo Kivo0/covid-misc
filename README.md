@@ -16,5 +16,7 @@ Each value corresponds to the instances of the given word on the diven date
 
 The user can specify an arbitrary number of words to search for in the tweet data.  
 
+plot_tweets.m - This MATLAB (Octave) script is just a generic script for plotting several words of interest from the matrix constructed by the previous program.  Specifically, it is written to plot the relative frequency of each word.  See file header for a longer description. 
+
 Time Series data:
 Create_Matrix.py creates MATLAB matrices from "messy" time series data.  See file header for full description. 
