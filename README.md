@@ -24,3 +24,9 @@ Create_Matrix.py - Creates MATLAB matrices from "messy" time series data.  See f
 plot_timeseries.m - The plotting utility for Create_Matrix.py
 
 See https://www.math.ucla.edu/~tmerkh/ for some of the plots produced using these files.
+
+
+X-Ray data:
+
+Extract_COVIDnet_Features.py - This script can be used to extract the learned representations of COVID-Net on the data set described in https://github.com/lindawangg/COVID-Net.  For more information about COVID-Net or the data set, please see the listed Github.
+
