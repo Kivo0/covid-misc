@@ -128,14 +128,13 @@ if __name__ == '__main__':
         print("Saving Representations to " + Save_loc)
         os.chdir(Save_loc)
     
-        ## This does not work if the matrix to be saved is several Gbs (as it is for the training set representations).
-        ## This command will simply terminate itself if that is the case.  A csv file will still be saved.
-        scipy.io.savemat(Save_file + ".mat", {Save_file : covidnet_reps})
-        
+        ## This does not work if the matrix to be saved is several Gbs (as it is for the training set representations).        
         with open(Save_file + ".csv", 'w', newline='') as filen:
             writer = csv.writer(filen)
             for i in range(len(file)):
                 writer.writerow(list(covidnet_reps[i][:]))
+        ## This command will simply terminate itself if that is the case.  A csv file will still be saved.
+        scipy.io.savemat(Save_file + ".mat", {Save_file : covidnet_reps})
     
 
     print("Program finished without errors")
