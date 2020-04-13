@@ -2,17 +2,17 @@
 Thomas Merkh, tmerkh@g.ucla.edu, April 2020
 
 This script creates matlab matrices which contain the learned representations of COVID-Net on several sources of X-ray data.
-The data used here is exactly the data set outline in COVID-Net
-The COVID-Net model(s) in use are the pretrained models supplied on the COVID-Net Github.  
+The data used here is exactly the data set outline in COVID-Net, see https://github.com/lindawangg/COVID-Net.
+The COVID-Net model(s) in use here are the pretrained models supplied on the aforementioned Github.  
 This script saves both a csv file and a .mat file* containing the representations data
 *Note that if the .mat file is too large, a least a couple of Gbs, Python refuses to save the .mat file and will only create a csv. 
-
-For more information on the data set and network, see https://github.com/lindawangg/COVID-Net.
 
 To run this file, clone the above github, place this file within the master directory, generate the dataset, and then run this program:
 python Extract_COVIDnet_Features.py --weightspath <PATH_TO_MODEL_CHKPTS> --metaname model.meta_train --ckptname <FILE_NAME_MODEL> --imagepath assets/ex-covid.jpeg
 For example:
 python Extract_COVIDnet_Features.py --weightspath COVID-Net-Large --metaname model.meta_train --ckptname model-2069 --imagepath assets/ex-covid.jpeg
+
+Note that several python modules will need to be installed, including but not limited to tensorflow (using 1.15), opencv, scikit-learn.
 """
 
 from sklearn.metrics import confusion_matrix
@@ -36,13 +36,15 @@ if __name__ == '__main__':
     test_features (bool) = True if one wishes to extract the representation of the test data set.  This will take precedence over training_features if both true.
     single_image (bool) = True if one wishes to output the representation of a single X-Ray image specified as a runtime argument.
     
+    Several lines down (around line 90), there are a couple of bools for setting which representation size (100352,1024,256) the user wants.
+    These can also be switched, though it is likely that users will be most interested in the 256 or 1024 size representations. 
     """
     Save_loc = "/media/tmerkh/a18f683c-46a6-4846-aa3c-f47e5cfb8171"  # os.getcwd()
-    Save_file = "representations_train"
+    Save_file = "representations_test_1024"
     print_tensors = False
     print_operations = False
-    training_features = True
-    test_features = False
+    training_features = False
+    test_features = True
     single_image = False
 
     ####################################### User adjustable parameters done #################################################
@@ -85,9 +87,23 @@ if __name__ == '__main__':
         for name in all_names:
             print(name)
 
+
     #This network produces 2024 7x7 patches at the final layer which gets flattened into 100352 1D vector.
+    representation_1 = False  # The 100352 dense layer pre-activation
+    representation_2 = True   # The 1024 dense layer pre-activation
+    representation_3 = False  # The 256 dense layer per-activation
+
     image_tensor = graph.get_tensor_by_name("input_1:0")
-    representation_tensor = graph.get_tensor_by_name("flatten_1/Reshape:0") # pre-activation for 100352 dense layer
+
+    if(representation_1):
+        representation_tensor = graph.get_tensor_by_name("flatten_1/Reshape:0") # pre-activation for 100352 dense layer
+        SZ = 100352
+    elif(representation_2):
+        representation_tensor = graph.get_tensor_by_name("dense_1/Relu:0") # pre-activation for 1024 dense layer
+        SZ = 1024
+    elif(representation_3):
+        representation_tensor = graph.get_tensor_by_name("dense_2/Relu:0") # pre-activation for 256 dense layer
+        SZ = 256
     
     ## testfile or trainfile can be used
     ## trainfile is so large that the process will get killed if not enough memory is available (I think its 7-11Gbs)
@@ -98,7 +114,7 @@ if __name__ == '__main__':
         file = trainfile
         folder = args.trainfolder
     if(test_features or training_features):
-        covidnet_reps = np.zeros((len(file),100352))  # Right now, I've hard coded in this value 100352.
+        covidnet_reps = np.zeros((len(file),SZ))
     
     
     # For generating the representations learned on either the test set or training set
@@ -137,7 +153,10 @@ if __name__ == '__main__':
         scipy.io.savemat(Save_file + ".mat", {Save_file : covidnet_reps})
     
 
-    print("Program finished without errors")
+    print("Program finished")
+    print("For tips on loading in the saved files, please see the comments at the end of the code")
+    print("\n")
+
     """
     This saves the representations as a csv file.
     In python, this can be loaded in by the script:
@@ -155,4 +174,10 @@ if __name__ == '__main__':
     In Octave (and MATLAB), this file may be loaded in by the command:
     
     csvread(CSV_FILE_NAME_HERE)
+
+
+    Potential Problems:
+        When trying to save/load a .mat or .csv file, scipy.io and Octave attempt to hold the entire matrix in RAM, at least while loading or saving.
+        This causes the program to crash if the machine decides that there isn't sufficient RAM for the size of the matrix, a problem that occurs with the largest representations 16546 by 100352.
+        Custom read-in and save-to scripts need to be written for this instance. 
     """
