@@ -31,3 +31,5 @@ X-Ray data:
 Extract_COVIDnet_Features.py - This script can be used to extract the learned representations of COVID-Net on the data set described in https://github.com/lindawangg/COVID-Net.  For more information about COVID-Net or the data set, please see the listed Github.
 
 make_labels.py - This script reads the test_COVIDx.txt and train_COVIDx.txt files generated along with the data set and creates MATLAB files containing labels where 0 == healthy, 1 == COVID-19, 2 == pneumonia.
+
+kmeans_clustering_representations.m - This script performs kmeans on the representation of the data learned at the final layers of COVID-Net.  Additionally, it includes a short adaptable code for PCA.
