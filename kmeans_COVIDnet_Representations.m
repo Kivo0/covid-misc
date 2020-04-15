@@ -1,4 +1,4 @@
-% Thomas Merkh, tmerkh@g.ucla.edu, April 2020, k-means method for clustering.
+% Thomas Merkh, tmerkh@g.ucla.edu, k-means method for clustering.
 % This script performs k-means clustering multiple times and measures the purity each time.
 % The average purity of each class are held by the variables normal_avg, covid_avg, pnuemonia_avg. 
 % The centroids for an given kmeans instance are contained in the columns of variable 'mu'
@@ -18,8 +18,9 @@ labels = labels + 1;                                   % labels are 1,2,3 instea
 k = 3;                                                 % Number of labels
 init = 1;                                              % Bool for initialization
 normal_avg = 0; covid_avg = 0; pneumonia_avg = 0;      % Purities averaged over n_runs times performing K means
-n_runs = 100;                                          % Rerun the initialization and EM algorithm this many times to see on average the purity obtained. 
-
+n_runs = 1000;                                         % Rerun the initialization and EM algorithm this many times to see on average the purity obtained. 
+collisions = 0;                                        % Counts collisions of class labels, if any
+n_success = 0;                                         % Counts number of runs without collisions (used for correct averaging since q can not be)
 
 for q = 1:n_runs
   %%%%%%%%%%%%%%%%%%%%% K-means algorithm %%%%%%%%%%%%%%%%%%%%%
@@ -40,15 +41,27 @@ for q = 1:n_runs
       [~,label] = max(bsxfun(@minus,mu'*data,dot(mu,mu,1)'/2),[],1); % assign samples to the nearest centers
   endwhile
    
-  % compute purities
-  purity_normal     = max([sum((labels == 1).*label == 1),sum((labels == 1).*label == 2),sum((labels == 1).*label == 3)])/sum(labels == 1);
-  purity_covid      = max([sum((labels == 2).*label == 1),sum((labels == 2).*label == 2),sum((labels == 2).*label == 3)])/sum(labels == 2);
-  purity_pneumonia  = max([sum((labels == 3).*label == 1),sum((labels == 3).*label == 2),sum((labels == 3).*label == 3)])/sum(labels == 3);
-
+  % compute purities - as calculated here, there is a potential collision in that two clusters could be assigned the same class label.
+  [purity_normal, normal_indx]      = max([sum((labels == 1).*label == 1),sum((labels == 1).*label == 2),sum((labels == 1).*label == 3)]);
+  [purity_covid, covid_indx]        = max([sum((labels == 2).*label == 1),sum((labels == 2).*label == 2),sum((labels == 2).*label == 3)]);
+  [purity_pneumonia, pneumonia_indx]= max([sum((labels == 3).*label == 1),sum((labels == 3).*label == 2),sum((labels == 3).*label == 3)]);
+  
+  purity_normal = purity_normal/sum(labels == 1);
+  purity_covid = purity_covid/sum(labels == 2);
+  purity_pneumonia = purity_pneumonia/sum(labels == 3);
+  
+  % class labels are held in: normal_indx, covid_indx, pneumonia_indx
+  
   % Don't store the purities for all the runs and then average, instead average along the way.
-  normal_avg = normal_avg + (1.0/q)*(purity_normal - normal_avg); 
-  covid_avg = covid_avg + (1.0/q)*(purity_covid - covid_avg); 
-  pneumonia_avg = pneumonia_avg + (1.0/q)*(purity_pneumonia - pneumonia_avg);  
+  % Only do this if there wasn't a collision in class labels
+  if((normal_indx != (pneumonia_indx || covid_indx)) && (covid_indx != pneumonia_indx))
+    n_success = n_success + 1;
+    normal_avg = normal_avg + (1.0/n_success)*(purity_normal - normal_avg); 
+    covid_avg = covid_avg + (1.0/n_success)*(purity_covid - covid_avg); 
+    pneumonia_avg = pneumonia_avg + (1.0/n_success)*(purity_pneumonia - pneumonia_avg);  
+  else
+    collisions = collisions + 1;
+  endif
 endfor
 
 disp('The average purities found were:')
@@ -58,6 +71,12 @@ disp('Covid:')
 disp(covid_avg)
 disp('Pneumonia:')
 disp(pneumonia_avg)
+
+if(collisions  > 0)
+  disp('There were several collisions when labeling the clusters!')
+  collisions
+endif
+
 
 if(!PCAon)
   disp('Program Finished')
