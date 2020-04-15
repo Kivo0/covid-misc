@@ -28,7 +28,7 @@ for q = 1:n_runs
   if(init == 1)
     label = ceil(k*rand(1,n));                                       % Random partition initialization
   else
-    mu = data(:,randi(150,1,3));                                     % Forgy initialization
+    mu = data(:,randi(n,1,3));                                       % Forgy initialization
     [~,label] = max(bsxfun(@minus,mu'*data,dot(mu,mu,1)'/2),[],1);   
   endif 
 
