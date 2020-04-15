@@ -25,6 +25,8 @@ k = 4;                                                          % Number of labe
 init = 0;                                                       % Bool for initialization
 normal_avg = 0; covid_avg = 0; viral_avg = 0; bacterial_avg = 0;% Purities averaged over n_runs times performing K means
 n_runs = 100;                                                   % Rerun the initialization and EM algorithm this many times to see on average the purity obtained. 
+collisions = 0;                                                 % Number of k-means instances with labelling collisions, not used for computing purity average.
+n_success = 0;                                                  % Number of k-means runs without any labelling collisions (used for correct averaging)
 
 for q = 1:n_runs
   %%%%%%%%%%%%%%%%%%%%% K-means algorithm %%%%%%%%%%%%%%%%%%%%%
@@ -46,17 +48,35 @@ for q = 1:n_runs
   endwhile
    
   % compute purities
-  purity_covid     = max([sum((labels == 1).*label == 1),sum((labels == 1).*label == 2),sum((labels == 1).*label == 3)])/sum(labels == 1);
-  purity_bacterial = max([sum((labels == 2).*label == 1),sum((labels == 2).*label == 2),sum((labels == 2).*label == 3)])/sum(labels == 2);
-  purity_normal    = max([sum((labels == 3).*label == 1),sum((labels == 3).*label == 2),sum((labels == 3).*label == 3)])/sum(labels == 3);
-  purity_viral     = max([sum((labels == 4).*label == 1),sum((labels == 4).*label == 2),sum((labels == 4).*label == 3)])/sum(labels == 4);
-
+  [purity_covid,v1]      = max([sum((labels == 1).*label == 1),sum((labels == 1).*label == 2),sum((labels == 1).*label == 3),sum((labels == 1).*label == 4)]);
+  [purity_bacterial, v2] = max([sum((labels == 2).*label == 1),sum((labels == 2).*label == 2),sum((labels == 2).*label == 3),sum((labels == 2).*label == 4)]);
+  [purity_normal, v3]    = max([sum((labels == 3).*label == 1),sum((labels == 3).*label == 2),sum((labels == 3).*label == 3),sum((labels == 3).*label == 4)]);
+  [purity_viral, v4]     = max([sum((labels == 4).*label == 1),sum((labels == 4).*label == 2),sum((labels == 4).*label == 3),sum((labels == 4).*label == 4)]);
+  
+  purity_covid = purity_covid/sum(labels == 1);
+  purity_bacterial = purity_bacterial/sum(labels == 2);
+  purity_normal = purity_normal/sum(labels == 3);
+  purity_viral = purity_viral/sum(labels == 4);
+    
   % Don't store the purities for all the runs and then average, instead average along the way.
-  normal_avg = normal_avg + (1.0/q)*(purity_normal - normal_avg); 
-  covid_avg = covid_avg + (1.0/q)*(purity_covid - covid_avg); 
-  viral_avg = viral_avg + (1.0/q)*(purity_viral - viral_avg); 
-  bacterial_avg = bacterial_avg + (1.0/q)*(purity_bacterial - bacterial_avg);  
+  % Only do this if all of the clusters are assigned unique labels.
+  
+  if( (v1 != (v2 || v3)) && (v1 != v4) && ((v2 != (v3 || v4)) && v3 != v4) )
+      n_success = n_success + 1;
+      normal_avg = normal_avg + (1.0/n_success)*(purity_normal - normal_avg); 
+      covid_avg = covid_avg + (1.0/n_success)*(purity_covid - covid_avg); 
+      viral_avg = viral_avg + (1.0/n_success)*(purity_viral - viral_avg); 
+      bacterial_avg = bacterial_avg + (1.0/n_success)*(purity_bacterial - bacterial_avg);  
+  else
+      collisions = collisions + 1;
+  endif
 endfor
+
+
+if(collisions > 0)
+  disp('The number of collisions was:')
+  collisions
+endif
 
 disp('The average purities found were:')
 disp('Normal:')
